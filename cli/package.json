@@ -1,0 +1,7 @@
+{
+  "name": "@fuwa-orm/cli",
+  "versino": "0.0.1",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json"
+  }
+}
