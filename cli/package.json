@@ -3,5 +3,8 @@
   "versino": "0.0.1",
   "scripts": {
     "build": "tsc -p tsconfig.build.json"
+  },
+  "dependencies": {
+    "antlr4": "^4.13.0"
   }
 }
