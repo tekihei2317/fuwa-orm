@@ -1,4 +1,5 @@
 {
+  "type": "module",
   "name": "@fuwa-orm/cli",
   "versino": "0.0.1",
   "scripts": {
@@ -6,5 +7,6 @@
   },
   "dependencies": {
     "antlr4": "^4.13.0"
-  }
+  },
+  "license": "MIT"
 }
