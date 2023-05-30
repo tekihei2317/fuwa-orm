@@ -1,4 +1,3 @@
-import fs from "node:fs/promises";
 import { parseTableDefinition } from "./parser/parser.js";
 
 /**
@@ -6,7 +5,7 @@ import { parseTableDefinition } from "./parser/parser.js";
  */
 export function generate(statements: string): string {
   const tableDefinitions = parseTableDefinition(statements);
-  console.log(tableDefinitions);
+  console.log(JSON.stringify(tableDefinitions, null, 2));
 
   // TODO: 型を生成する
   return "";

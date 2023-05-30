@@ -1,17 +1,18 @@
-export type ColumnType = "INTEGER" | "TEXT" | "REAL" | "BLOB" | "ANY";
+export const columnTypes = ["INT", "INTEGER", "TEXT", "REAL", "BLOB", "ANY"] as const;
+export type ColumnType = (typeof columnTypes)[number];
 
 export type ColumnDefinition = {
   name: string;
   type: ColumnType;
   nullable: boolean;
-  default?: unknown;
+  optional: boolean; // Column has default value or INTEGER & PRIMARY KEY（means autoincrement in SQLite）
 };
 
 export type ConstraintType = "PRIMARY" | "UNIQUE";
 
-export type TableConstraint = {
+export type ConstraintDefinition = {
   type: ConstraintType;
-  columns: string[]; // カラムのインデックス（添字）の方がいいかも→WhereUniqueを設定するときに、カラムを参照するため
+  columns: number[]; // Column definition indexes
 };
 
 export type RelationDefinition = {
@@ -24,6 +25,6 @@ export type RelationDefinition = {
 export type TableDefinition = {
   name: string;
   columns: ColumnDefinition[];
-  constraints: TableConstraint[];
+  constraints: ConstraintDefinition[];
   // relations: RelationDefinition[];
 };

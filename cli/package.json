@@ -3,7 +3,8 @@
   "name": "@fuwa-orm/cli",
   "versino": "0.0.1",
   "scripts": {
-    "build": "tsc -p tsconfig.build.json"
+    "build": "tsc -p tsconfig.build.json",
+    "build:watch": "tsc -p tsconfig.build.json --watch"
   },
   "dependencies": {
     "antlr4": "^4.13.0"
