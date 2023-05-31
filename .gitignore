@@ -1,3 +1,6 @@
+.yarn/*
+!.yarn/releases
+!.yarn/plugins
 node_modules
 cli/dist
 client/dist

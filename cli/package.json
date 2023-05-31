@@ -1,13 +1,27 @@
 {
   "type": "module",
   "name": "@fuwa-orm/cli",
-  "versino": "0.0.1",
+  "version": "0.0.3",
+  "bin": {
+    "fuwa": "bin/index.js"
+  },
+  "files": [
+    "bin",
+    "dist",
+    "package.json",
+    "README.md"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
-    "build:watch": "tsc -p tsconfig.build.json --watch"
+    "build:watch": "tsc -p tsconfig.build.json --watch",
+    "playground": "node dist/index.js generate playground/schema.sql > playground/types.ts"
   },
   "dependencies": {
-    "antlr4": "^4.13.0"
+    "antlr4": "^4.13.0",
+    "cac": "^6.7.14"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.0.4"
+  }
 }

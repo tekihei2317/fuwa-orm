@@ -5,14 +5,12 @@ import SQLiteParserListener from "./SQLiteParserListener.js";
 import { ColumnDefinition, ColumnType, ConstraintDefinition, TableDefinition, columnTypes } from "../core.js";
 import { assertNonNullable } from "../assertion.js";
 
-let tableDefinitions: TableDefinition[] = [];
-
 /**
  * Convert type text into SQLite's column type
  */
 function toColumnType(type: string): ColumnType {
   // The conversion is based on SQLite's STRICT Tables(https://www.sqlite.org/stricttables.html),
-  // becaulse if the table is not a STRICT Table, the specification of the column type
+  // because if the table is not a STRICT Table, the specification of the column type
   // hardly limits the values that can be stored.
   const types: readonly string[] = columnTypes;
   if (types.includes(type.toUpperCase())) {
@@ -130,6 +128,8 @@ function createTableDefinitionFromNode(ctx: Create_table_stmtContext): TableDefi
     constraints,
   };
 }
+
+let tableDefinitions: TableDefinition[] = [];
 
 class TreeListener extends SQLiteParserListener {
   enterCreate_table_stmt = (ctx: Create_table_stmtContext) => {
