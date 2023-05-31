@@ -2,12 +2,10 @@ import { Database } from "better-sqlite3";
 import { createSQLiteSession } from "./session.js";
 
 // Override by the generated types
-export interface FuwaClient {}
-
-export function createFuwaClient(client: Database): FuwaClient {
+export function createFuwaClient<ModelGateways>(client: Database): ModelGateways {
   const session = createSQLiteSession(client);
 
-  return {};
+  return {} as ModelGateways;
 }
 
 export const FuwaClient = {

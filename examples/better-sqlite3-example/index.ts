@@ -1,10 +1,11 @@
 import Database from "better-sqlite3";
 import { FuwaClient } from "@fuwa-orm/client";
+import { ModelGateways } from "./.fuwa-orm/client.js";
 
 const db = new Database("sample.db");
-const client = FuwaClient.create(db);
+const client = FuwaClient.create<ModelGateways>(db);
 
-console.log({ client });
+const user = client.user.create();
 
 // const db = new Database("sample.db");
 // db.exec("DROP TABLE IF EXISTS User");
