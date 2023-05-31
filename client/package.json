@@ -1,7 +1,23 @@
 {
+  "type": "module",
   "name": "@fuwa-orm/client",
-  "versino": "0.0.1",
+  "version": "0.0.1",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    }
+  },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json"
+    "build": "tsc -p tsconfig.build.json",
+    "build:watch": "tsc -p tsconfig.build.json --watch"
+  },
+  "peerDependencies": {
+    "better-sqlite3": "^8.4.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.4"
   }
 }

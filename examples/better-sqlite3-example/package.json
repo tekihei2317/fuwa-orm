@@ -1,0 +1,14 @@
+{
+  "type": "module",
+  "private": "true",
+  "name": "better-sqlite3-example",
+  "devDependencies": {
+    "@fuwa-orm/cli": "*",
+    "@types/better-sqlite3": "^7.6.4",
+    "typescript": "^5.0.4"
+  },
+  "dependencies": {
+    "@fuwa-orm/client": "^0.0.1",
+    "better-sqlite3": "^8.4.0"
+  }
+}

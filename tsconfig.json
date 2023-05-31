@@ -2,13 +2,8 @@
   "extends": ["@tsconfig/strictest/tsconfig.json"],
   "compilerOptions": {
     "target": "ES2021", // Support Node.js v16
-    "module": "ES6", // Generate ES Modules
-    "moduleResolution": "node", // Setting node16 causes a compile error on import from antlr4
+    // "module": "ES6", // Generate ES Modules
     "noUnusedLocals": false,
-    "noUnusedParameters": false,
-
-    // Avoid compile errors of SQLiteParser.ts
-    "exactOptionalPropertyTypes": false,
-    "noImplicitOverride": false
+    "noUnusedParameters": false
   }
 }

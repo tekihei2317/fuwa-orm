@@ -5,7 +5,8 @@
   "license": "MIT",
   "workspaces": [
     "cli",
-    "client"
+    "client",
+    "examples/*"
   ],
   "scripts": {
     "build": "npm run build --workspace=cli --workspace=client",
