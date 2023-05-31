@@ -5,9 +5,15 @@ import { ModelGateways } from "./.fuwa-orm/client.js";
 const db = new Database("sample.db");
 const client = FuwaClient.create<ModelGateways>(db);
 
-const user = client.user.create();
-const post = client.post.findMany();
-console.log(user, post);
+const user = client.user.create({
+  data: {
+    id: 1,
+    email: "tsato@example.com",
+  },
+});
+console.log({ user });
+// const post = client.post.findMany();
+// console.log(user, post);
 
 // const db = new Database("sample.db");
 // db.exec("DROP TABLE IF EXISTS User");

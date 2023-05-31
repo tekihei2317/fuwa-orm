@@ -20,8 +20,9 @@ __metadata:
   dependencies:
     antlr4: ^4.13.0
     cac: ^6.7.14
+    typescript: ^5.0.4
   bin:
-    fuwa: dist/index.js
+    fuwa: bin/index.js
   languageName: unknown
   linkType: soft
 
@@ -32,6 +33,9 @@ __metadata:
     "@types/better-sqlite3": ^7.6.4
   peerDependencies:
     better-sqlite3: ^8.4.0
+  peerDependenciesMeta:
+    better-sqlite3:
+      optional: true
   languageName: unknown
   linkType: soft
 

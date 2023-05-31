@@ -29,7 +29,7 @@ function createModelAction({
   model: string;
   action: ModelAction;
 }): AnyAction {
-  return () => session.execute({ model, action });
+  return (args) => session.execute({ model, action, args });
 }
 
 function createModelGateways<ModelGateways>(session: SQLiteSession): ModelGateways {

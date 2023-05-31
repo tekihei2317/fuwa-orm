@@ -2,7 +2,6 @@
   "extends": ["@tsconfig/strictest/tsconfig.json"],
   "compilerOptions": {
     "target": "ES2021", // Support Node.js v16
-    // "module": "ES6", // Generate ES Modules
     "noUnusedLocals": false,
     "noUnusedParameters": false
   }

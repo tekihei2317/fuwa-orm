@@ -1,6 +1,6 @@
 # fuwa-orm
 
-Lightweight ORM for SQLite with typesafe client and code generation from SQL [WIP]
+Lightweight ORM for SQLite with typesafe client and code generation from SQL (WIP).
 
 ## Installation
 
