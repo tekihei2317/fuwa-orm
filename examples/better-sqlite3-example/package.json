@@ -1,6 +1,9 @@
 {
   "type": "module",
   "name": "better-sqlite3-example",
+  "scripts": {
+    "generate": "fuwa generate schema.sql > fuwa-orm/types.d.ts"
+  },
   "devDependencies": {
     "@fuwa-orm/cli": "workspace:^",
     "@types/better-sqlite3": "^7.6.4",

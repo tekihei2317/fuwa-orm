@@ -115,8 +115,8 @@ function createModelIncludeInput(table: TableDefinition): string {
 
 function createFetchArgs(table: TableDefinition): string {
   return `export type ${table.name}FetchArgs = {
-  include: ${table.name}Include;
-  select: ${table.name}Select;
+  include?: ${table.name}Include;
+  select?: ${table.name}Select;
 };`;
 }
 
@@ -124,12 +124,12 @@ function createModelActions(table: TableDefinition): string {
   return `type ${table.name}CreateArgs = { data: ${table.name}CreateInput };
 type ${table.name}CreateManyArgs = { data: ${table.name}CreateInput[] };
 type ${table.name}UpdateArgs = { where: ${table.name}WhereUniqueInput; data: ${table.name}UpdateInput };
-type ${table.name}UpdateManyArgs = { where: ${table.name}WhereInput; data: ${table.name}UpdateInput };
+type ${table.name}UpdateManyArgs = { where?: ${table.name}WhereInput; data: ${table.name}UpdateInput };
 type ${table.name}DeleteArgs = { where: ${table.name}WhereUniqueInput };
-type ${table.name}DeleteManyArgs = { where: ${table.name}WhereInput };
+type ${table.name}DeleteManyArgs = { where?: ${table.name}WhereInput };
 type ${table.name}FindUniqueArgs = { where: ${table.name}WhereUniqueInput } & ${table.name}FetchArgs;
-type ${table.name}FindFirstArgs = { where: ${table.name}WhereInput } & ${table.name}FetchArgs;
-type ${table.name}FindManyArgs = { where: ${table.name}WhereInput } & ${table.name}FetchArgs;`;
+type ${table.name}FindFirstArgs = { where?: ${table.name}WhereInput } & ${table.name}FetchArgs;
+type ${table.name}FindManyArgs = { where?: ${table.name}WhereInput } & ${table.name}FetchArgs;`;
 }
 
 /**
@@ -158,17 +158,32 @@ function createGatewayType(tableDef: TableDefinition): string {
   update: (args: ${tableDef.name}UpdateArgs) => Promise<${tableDef.name}>;
   updateMany: (args: ${tableDef.name}UpdateManyArgs) => Promise<BatchPayload>;
   delete: (args: ${tableDef.name}DeleteArgs) => Promise<${tableDef.name}>;
-  deleteMany: (args: ${tableDef.name}DeleteManyArgs) => Promise<BatchPayload>;
+  deleteMany: (args?: ${tableDef.name}DeleteManyArgs) => Promise<BatchPayload>;
   findUnique: <Args extends ${tableDef.name}FindUniqueArgs>(args: Args) => Promise<${tableDef.name} | null>;
   findUniqueOrThrow: <Args extends ${tableDef.name}FindUniqueArgs>(args: Args) => Promise<${tableDef.name}>;
-  findFirst: <Args extends ${tableDef.name}FindFirstArgs>(args: Args) => Promise<${tableDef.name} | null>;
-  finFirstOrThrow: <Args extends ${tableDef.name}FindFirstArgs>(args: Args) => Promise<${tableDef.name}>;
-  findMany: <Args extends ${tableDef.name}FindManyArgs>(args: Args) => Promise<${tableDef.name}[]>;
+  findFirst: <Args extends ${tableDef.name}FindFirstArgs>(args?: Args) => Promise<${tableDef.name} | null>;
+  finFirstOrThrow: <Args extends ${tableDef.name}FindFirstArgs>(args?: Args) => Promise<${tableDef.name}>;
+  findMany: <Args extends ${tableDef.name}FindManyArgs>(args?: Args) => Promise<${tableDef.name}[]>;
 };`;
 }
 
+function uncapitalize(str: string): string {
+  const firstLetter = str[0];
+  return firstLetter === undefined ? str : firstLetter.toLowerCase() + str.slice(1);
+}
+
+function createModelGateways(tables: TableDefinition[]): string {
+  return `export type ModelGateways = {
+${tables.map((table) => indent2(`${uncapitalize(table.name)}: ${table.name}Gateway;`)).join("\n")}
+}`;
+}
+
 function createGatewaysSection(tableDefs: TableDefinition[]): string {
-  return [createSectionHeader("Gateways"), ...tableDefs.map((tableDef) => createGatewayType(tableDef))].join("\n\n");
+  return [
+    createSectionHeader("Gateways"),
+    ...tableDefs.map((tableDef) => createGatewayType(tableDef)),
+    createModelGateways(tableDefs),
+  ].join("\n\n");
 }
 
 /**
