@@ -1,13 +1,14 @@
 {
   "type": "module",
   "name": "@fuwa-orm/cli",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "bin": {
-    "fuwa": "dist/index.js"
+    "fuwa": "bin/index.js"
   },
   "files": [
-    "package.json",
+    "bin",
     "dist",
+    "package.json",
     "README.md"
   ],
   "scripts": {

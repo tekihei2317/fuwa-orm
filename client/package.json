@@ -1,14 +1,10 @@
 {
   "type": "module",
   "name": "@fuwa-orm/client",
-  "version": "0.0.1",
+  "version": "0.0.2",
+  "types": "./dist/index.d.ts",
   "exports": {
-    ".": {
-      "import": {
-        "types": "./dist/index.d.ts",
-        "default": "./dist/index.js"
-      }
-    }
+    ".": "./dist/index.js"
   },
   "files": [
     "package.json",

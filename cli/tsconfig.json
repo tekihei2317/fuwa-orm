@@ -1,5 +1,6 @@
 {
   "extends": "../tsconfig.json",
+  "include": ["src"],
   "compilerOptions": {
     "module": "ES2015",
     "moduleResolution": "node", // Setting node16 causes a compile error on import from antlr4
