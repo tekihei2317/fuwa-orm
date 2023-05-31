@@ -10,12 +10,22 @@
       }
     }
   },
+  "files": [
+    "package.json",
+    "dist",
+    "README.md"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "build:watch": "tsc -p tsconfig.build.json --watch"
   },
   "peerDependencies": {
     "better-sqlite3": "^8.4.0"
+  },
+  "peerDependenciesMeta": {
+    "better-sqlite3": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.4"

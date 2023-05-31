@@ -5,6 +5,11 @@
   "bin": {
     "fuwa": "dist/index.js"
   },
+  "files": [
+    "package.json",
+    "dist",
+    "README.md"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "build:watch": "tsc -p tsconfig.build.json --watch"
