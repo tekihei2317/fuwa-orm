@@ -6,6 +6,8 @@ const db = new Database("sample.db");
 const client = FuwaClient.create<ModelGateways>(db);
 
 const user = client.user.create();
+const post = client.post.findMany();
+console.log(user, post);
 
 // const db = new Database("sample.db");
 // db.exec("DROP TABLE IF EXISTS User");
