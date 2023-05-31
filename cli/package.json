@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "@fuwa-orm/cli",
-  "versino": "0.0.1",
+  "version": "0.0.1",
   "bin": {
     "fuwa": "dist/index.js"
   },
