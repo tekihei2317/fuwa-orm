@@ -1,0 +1,22 @@
+{
+  "private": true,
+  "name": "fuwa-orm",
+  "version": "0.0.1",
+  "license": "MIT",
+  "workspaces": [
+    "cli",
+    "client"
+  ],
+  "scripts": {
+    "build": "npm run build --workspace=cli --workspace=client",
+    "lint:prettier": "prettier --check '**/*.{js,ts,tsx,json}'",
+    "fix:prettier": "prettier --write '**/*.{js,ts,tsx,json}'"
+  },
+  "devDependencies": {
+    "@tsconfig/strictest": "^2.0.1",
+    "@types/node": "^20.2.5",
+    "prettier": "^2.8.8",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.0.4"
+  }
+}
