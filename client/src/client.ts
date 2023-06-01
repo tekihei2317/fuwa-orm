@@ -27,16 +27,33 @@ type GeneratedQuery = {
 };
 
 type ModelCreateInput = Record<string, number | string | null>;
-type ModelUpdateInput = Record<string, number | string | null>;
+type WhereCondition = Record<string, number | string | null>;
 
 type CreateActionArgs = { data: ModelCreateInput };
 type CreateManyActionArgs = { data: ModelCreateInput[] };
+type UpdateActionArgs = { data: ModelCreateInput; where: WhereCondition };
 
 function isArray(data: unknown): data is unknown[] {
   return Array.isArray(data);
 }
 
 function validateModelCreateInput(input: unknown): ModelCreateInput {
+  if (typeof input !== "object" || input === null) throw new Error("Invalid model create input.");
+
+  const data = Object.entries(input).map(([column, value]) => {
+    if (value !== null && typeof value !== "string" && typeof value !== "number") {
+      throw new Error(`Value for column '${column} must be number, string or null.`);
+    }
+
+    return [column, value];
+  });
+
+  return Object.fromEntries(data);
+}
+
+const validateModelUpdateInput = validateModelCreateInput;
+
+function validateWhereCondition(input: unknown): WhereCondition {
   if (typeof input !== "object" || input === null) throw new Error("Invalid model create input.");
 
   const data = Object.entries(input).map(([column, value]) => {
@@ -77,7 +94,18 @@ function validateCreateManyActionArgs(args: unknown): CreateManyActionArgs {
   return { data };
 }
 
-function createInsertStatementForCreate(model: string, args: CreateActionArgs): string {
+function validateUpdateActionArgs(args: unknown): UpdateActionArgs {
+  if (typeof args !== "object" || args === null) throw new Error("Update action args must be an object.");
+  if (!("data" in args)) throw new Error("'data' is required for update action args.");
+  if (!("where" in args)) throw new Error("'where' is required for update action args.");
+
+  const data = validateModelUpdateInput(args.data);
+  const where = validateWhereCondition(args.where);
+
+  return { data, where };
+}
+
+function createInsertStatement(model: string, args: CreateActionArgs): string {
   const columns = Object.keys(args.data).map((column) => `"${column}"`);
   const values = [...new Array(columns.length)].fill("?");
   return `INSERT INTO ${model} (${columns.join(", ")}) VALUES (${values.join(", ")}) RETURNING *`;
@@ -94,6 +122,13 @@ function createInsertManyStatement(model: string, args: CreateManyActionArgs): s
   return `INSERT INTO ${model} (${columns.join(", ")}) VALUES ${values} RETURNING *`;
 }
 
+function createUpdateStatement(model: string, args: UpdateActionArgs): string {
+  const assignments = Object.keys(args.data).map((column) => `"${column}" = ?`);
+  const filters = Object.keys(args.where).map((column) => `"${column}" = ?`);
+
+  return `UPDATE ${model} SET ${assignments.join(",")} WHERE ${filters.join(" AND ")} RETURNING *`;
+}
+
 /**
  * Generate query to execute from user's arguments.
  */
@@ -101,9 +136,10 @@ function generateQuery({ action, model, args }: GenerateQueryInput): GeneratedQu
   if (action === "create") {
     const validatedArgs = validateCreateActionArgs(args);
 
+    // It is better to create a statement and parameters in one function
     return {
       action,
-      statement: createInsertStatementForCreate(model, validatedArgs),
+      statement: createInsertStatement(model, validatedArgs),
       parameters: Object.values(validatedArgs.data),
     };
   } else if (action === "createMany") {
@@ -114,6 +150,14 @@ function generateQuery({ action, model, args }: GenerateQueryInput): GeneratedQu
       action,
       statement: createInsertManyStatement(model, validatedArgs),
       parameters,
+    };
+  } else if (action === "update") {
+    const validatedArgs = validateUpdateActionArgs(args);
+
+    return {
+      action,
+      statement: createUpdateStatement(model, validatedArgs),
+      parameters: [...Object.values(validatedArgs.data), ...Object.values(validatedArgs.where)],
     };
   } else {
     throw new Error(`Action '${action}' is unsupported for query engine now.`);
@@ -142,8 +186,10 @@ function createModelAction({
       return queryRunner.create(generatedQuery);
     } else if (generatedQuery.action === "createMany") {
       return queryRunner.createMany(generatedQuery);
+    } else if (generatedQuery.action === "update") {
+      return queryRunner.update(generatedQuery);
     } else {
-      throw new Error(`Action '${args.action}' is unsupported for model action now.`);
+      throw new Error(`Action '${generatedQuery.action}' is unsupported for model action now.`);
     }
   };
 }

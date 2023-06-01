@@ -21,11 +21,17 @@ async function main() {
     },
   });
 
-  console.log({ user }, user.id, user.email);
+  console.log(user, user.id, user.email);
   const users = await client.user.createMany({
     data: [{ email: "hoge@example.com" }, { email: "fuga@example.com" }],
   });
   console.log(users);
+
+  const updatedUser = await client.user.update({
+    data: { email: "hoge@example.com" },
+    where: { id: 1 },
+  });
+  console.log(updatedUser);
 }
 
 main();
