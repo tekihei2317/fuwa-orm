@@ -1,5 +1,5 @@
 import { Database } from "better-sqlite3";
-import { createSQLiteSession, SQLiteSession } from "./session.js";
+import { QueryRunner, createBetterSQLite3QueryRunner } from "./query-runner.js";
 
 type ModelAction =
   | "create"
@@ -14,25 +14,71 @@ type ModelAction =
   | "findFirstOrThrow"
   | "findMany";
 
+type GenerateQueryInput = {
+  model: string;
+  action: ModelAction;
+  args: unknown;
+};
+
+type GeneratedQuery = {
+  action: ModelAction;
+  statement: string;
+  parameters: unknown[];
+};
+
+/**
+ * Generate query to execute from user's arguments.
+ */
+function generateQuery(args: GenerateQueryInput): GeneratedQuery {
+  if (args.action === "create") {
+    // バリデーションを実行する
+    // dataが存在すること、カラム: 値の形式になっていることなど
+
+    return {
+      action: args.action,
+      statement: "insert into User (email) values (?) returning *",
+      parameters: ["tekihei2317@example.com"],
+    };
+  } else {
+    throw new Error(`Action '${args.action} is unsupported for query engine now.'`);
+  }
+}
+
 type AnyAction = (args: any) => any;
+
+/**
+ * Create model action, which takes user's arguments and run generated query.
+ */
+function createModelAction({
+  queryRunner,
+  model,
+  action,
+}: {
+  queryRunner: QueryRunner;
+  model: string;
+  action: ModelAction;
+}): AnyAction {
+  // TODO: Actionが正しい型を返すことを確認できるようにしたい。現状だとcreateで戻り値を返さなくてもエラーにならない。
+  return async (args) => {
+    console.log({ model, action, args });
+    const generaetdQuery = generateQuery({ model, action, args });
+
+    if (generaetdQuery.action === "create") {
+      return queryRunner.create({
+        statement: "insert into User (email) values (?) returning *",
+        parameters: ["tekihei2317@example.com"],
+      });
+    } else {
+      throw new Error(`Action '${args.action} is unsupported for model action now.'`);
+    }
+  };
+}
 
 type ModelGateway = {
   [action in ModelAction]: AnyAction;
 };
 
-function createModelAction({
-  session,
-  model,
-  action,
-}: {
-  session: SQLiteSession;
-  model: string;
-  action: ModelAction;
-}): AnyAction {
-  return (args) => session.execute({ model, action, args });
-}
-
-function createModelGateways<ModelGateways>(session: SQLiteSession): ModelGateways {
+function createModelGateways<ModelGateways>(queryRunner: QueryRunner): ModelGateways {
   const modelGateways = new Proxy(
     {},
     {
@@ -40,17 +86,17 @@ function createModelGateways<ModelGateways>(session: SQLiteSession): ModelGatewa
         const model = prop.toString();
 
         return {
-          create: createModelAction({ session, model, action: "create" }),
-          createMany: createModelAction({ session, model, action: "createMany" }),
-          update: createModelAction({ session, model, action: "update" }),
-          updateMany: createModelAction({ session, model, action: "updateMany" }),
-          delete: createModelAction({ session, model, action: "delete" }),
-          deleteMany: createModelAction({ session, model, action: "deleteMany" }),
-          findUnique: createModelAction({ session, model, action: "findUnique" }),
-          findUniqueOrThrow: createModelAction({ session, model, action: "findUniqueOrThrow" }),
-          findFirst: createModelAction({ session, model, action: "findFirst" }),
-          findFirstOrThrow: createModelAction({ session, model, action: "findFirstOrThrow" }),
-          findMany: createModelAction({ session, model, action: "findMany" }),
+          create: createModelAction({ queryRunner, model, action: "create" }),
+          createMany: createModelAction({ queryRunner, model, action: "createMany" }),
+          update: createModelAction({ queryRunner, model, action: "update" }),
+          updateMany: createModelAction({ queryRunner, model, action: "updateMany" }),
+          delete: createModelAction({ queryRunner, model, action: "delete" }),
+          deleteMany: createModelAction({ queryRunner, model, action: "deleteMany" }),
+          findUnique: createModelAction({ queryRunner, model, action: "findUnique" }),
+          findUniqueOrThrow: createModelAction({ queryRunner, model, action: "findUniqueOrThrow" }),
+          findFirst: createModelAction({ queryRunner, model, action: "findFirst" }),
+          findFirstOrThrow: createModelAction({ queryRunner, model, action: "findFirstOrThrow" }),
+          findMany: createModelAction({ queryRunner, model, action: "findMany" }),
         } satisfies ModelGateway;
       },
     }
@@ -59,10 +105,10 @@ function createModelGateways<ModelGateways>(session: SQLiteSession): ModelGatewa
   return modelGateways;
 }
 
-export function createFuwaClient<ModelGateways>(dbClient: Database): ModelGateways {
-  const session = createSQLiteSession(dbClient);
+export function createFuwaClient<ModelGateways>(driver: Database): ModelGateways {
+  const queryRunner = createBetterSQLite3QueryRunner(driver);
 
-  return createModelGateways(session);
+  return createModelGateways(queryRunner);
 }
 
 export const FuwaClient = {
