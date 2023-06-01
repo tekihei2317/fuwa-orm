@@ -1,6 +1,5 @@
 import { Database } from "better-sqlite3";
 import { QueryRunner, createBetterSQLite3QueryRunner } from "./query-runner.js";
-import { Result } from "./result.js";
 
 type ModelAction =
   | "create"
@@ -27,15 +26,35 @@ type GeneratedQuery = {
   parameters: unknown[];
 };
 
-type CreateActionArgs = {
-  data: Record<string, number | string | null>;
-};
+type ModelCreateInput = Record<string, number | string | null>;
+type ModelUpdateInput = Record<string, number | string | null>;
 
-function validateCreateActionArgs(args: unknown): Result<CreateActionArgs, string> {
+type CreateActionArgs = { data: ModelCreateInput };
+type CreateManyActionArgs = { data: ModelCreateInput[] };
+
+function isArray(data: unknown): data is unknown[] {
+  return Array.isArray(data);
+}
+
+function validateModelCreateInput(input: unknown): ModelCreateInput {
+  if (typeof input !== "object" || input === null) throw new Error("Invalid model create input.");
+
+  const data = Object.entries(input).map(([column, value]) => {
+    if (value !== null && typeof value !== "string" && typeof value !== "number") {
+      throw new Error(`Value for column '${column} must be number, string or null.`);
+    }
+
+    return [column, value];
+  });
+
+  return Object.fromEntries(data);
+}
+
+function validateCreateActionArgs(args: unknown): CreateActionArgs {
   // TODO: improve validation
-  if (typeof args !== "object" || args === null) return Result.error("Create action args must be an object.");
-  if (!("data" in args)) return Result.error("Create action args must have data property.");
-  if (typeof args.data !== "object" || args.data === null) return Result.error("Create action data must be an object.");
+  if (typeof args !== "object" || args === null) throw new Error("Create action args must be an object.");
+  if (!("data" in args)) throw new Error("Create action args must have data property.");
+  if (typeof args.data !== "object" || args.data === null) throw new Error("Create action data must be an object.");
 
   const data = Object.entries(args.data).map(([column, value]) => {
     if (value !== null && typeof value !== "string" && typeof value !== "number") {
@@ -45,7 +64,17 @@ function validateCreateActionArgs(args: unknown): Result<CreateActionArgs, strin
     return [column, value];
   });
 
-  return Result.ok({ data: Object.fromEntries(data) });
+  return { data: Object.fromEntries(data) };
+}
+
+function validateCreateManyActionArgs(args: unknown): CreateManyActionArgs {
+  if (typeof args !== "object" || args === null) throw new Error("Create many action args must be an object.");
+  if (!("data" in args)) throw new Error("Create many action args must have data property.");
+  if (!isArray(args.data)) throw new Error("Create many action data must be an array.");
+
+  const data = args.data.map((input) => validateModelCreateInput(input));
+
+  return { data };
 }
 
 function createInsertStatementForCreate(model: string, args: CreateActionArgs): string {
@@ -54,24 +83,40 @@ function createInsertStatementForCreate(model: string, args: CreateActionArgs): 
   return `INSERT INTO ${model} (${columns.join(", ")}) VALUES (${values.join(", ")}) RETURNING *`;
 }
 
+function createInsertManyStatement(model: string, args: CreateManyActionArgs): string {
+  const createInput = args.data[0];
+  if (createInput === undefined) throw new Error("TODO: Create many input is an empty array.");
+
+  const columns = Object.keys(createInput).map((column) => `"${column}"`);
+  const value = [...new Array(columns.length)].fill("?").join(", ");
+  const values = [...new Array(args.data.length)].fill(`(${value})`).join(", ");
+
+  return `INSERT INTO ${model} (${columns.join(", ")}) VALUES ${values} RETURNING *`;
+}
+
 /**
  * Generate query to execute from user's arguments.
  */
 function generateQuery({ action, model, args }: GenerateQueryInput): GeneratedQuery {
   if (action === "create") {
-    const result = validateCreateActionArgs(args);
-    if (!result.success) {
-      throw new Error(`Invalid create action args. ${result.error}`);
-    }
-    const validatedArgs = result.value;
+    const validatedArgs = validateCreateActionArgs(args);
 
     return {
       action,
       statement: createInsertStatementForCreate(model, validatedArgs),
       parameters: Object.values(validatedArgs.data),
     };
+  } else if (action === "createMany") {
+    const validatedArgs = validateCreateManyActionArgs(args);
+    const parameters = validatedArgs.data.flatMap((createInput) => Object.values(createInput));
+
+    return {
+      action,
+      statement: createInsertManyStatement(model, validatedArgs),
+      parameters,
+    };
   } else {
-    throw new Error(`Action '${action} is unsupported for query engine now.'`);
+    throw new Error(`Action '${action}' is unsupported for query engine now.`);
   }
 }
 
@@ -89,17 +134,16 @@ function createModelAction({
   model: string;
   action: ModelAction;
 }): AnyAction {
-  // TODO: Actionが正しい型を返すことを確認できるようにしたい。現状だとcreateで戻り値を返さなくてもエラーにならない。
+  // Actionが正しい型を返すことを確認できるようにしたい。現状だとcreateで戻り値を返さなくてもエラーにならない。
   return async (args) => {
-    const generaetdQuery = generateQuery({ model, action, args });
+    const generatedQuery = generateQuery({ model, action, args });
 
-    if (generaetdQuery.action === "create") {
-      return queryRunner.create({
-        statement: generaetdQuery.statement,
-        parameters: generaetdQuery.parameters,
-      });
+    if (generatedQuery.action === "create") {
+      return queryRunner.create(generatedQuery);
+    } else if (generatedQuery.action === "createMany") {
+      return queryRunner.createMany(generatedQuery);
     } else {
-      throw new Error(`Action '${args.action} is unsupported for model action now.'`);
+      throw new Error(`Action '${args.action}' is unsupported for model action now.`);
     }
   };
 }

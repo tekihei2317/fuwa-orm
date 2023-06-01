@@ -9,7 +9,7 @@ type QueryRunnerInput = {
 export type QueryRunner = {
   // 戻り値はどこまで実行前に保証できるか分からないので、一旦unknownにします
   create: (args: QueryRunnerInput) => unknown;
-  // createMany: (args: unknown) => unknown;
+  createMany: (args: QueryRunnerInput) => unknown;
   // update: (args: unknown) => unknown;
   // updateMany: (args: unknown) => unknown;
   // delete: (args: unknown) => unknown;
@@ -26,6 +26,10 @@ export function createBetterSQLite3QueryRunner(driver: Database): QueryRunner {
     create: (input) => {
       const result = driver.prepare(input.statement).get(input.parameters);
       return result;
+    },
+    createMany: (input) => {
+      const result = driver.prepare(input.statement).run(input.parameters);
+      return { count: result.changes };
     },
   };
 }

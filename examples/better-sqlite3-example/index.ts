@@ -22,6 +22,10 @@ async function main() {
   });
 
   console.log({ user }, user.id, user.email);
+  const users = await client.user.createMany({
+    data: [{ email: "hoge@example.com" }, { email: "fuga@example.com" }],
+  });
+  console.log(users);
 }
 
 main();
