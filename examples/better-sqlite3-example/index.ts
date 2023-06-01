@@ -17,7 +17,7 @@ async function main() {
   const user = await client.user.create({
     data: {
       id: 1,
-      email: "tsato@example.com",
+      email: "hoge@example.com",
     },
   });
 

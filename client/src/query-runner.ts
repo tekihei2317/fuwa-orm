@@ -24,7 +24,6 @@ export type QueryRunner = {
 export function createBetterSQLite3QueryRunner(driver: Database): QueryRunner {
   return {
     create: (input) => {
-      console.log({ input });
       const result = driver.prepare(input.statement).get(input.parameters);
       return result;
     },
