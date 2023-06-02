@@ -28,10 +28,16 @@ async function main() {
   console.log(users);
 
   const updatedUser = await client.user.update({
-    data: { email: "hoge@example.com" },
     where: { id: 1 },
+    data: { email: "hoge@example.com" },
   });
   console.log(updatedUser);
+
+  const result = await client.user.updateMany({
+    where: { email: "hoge@example.com" },
+    data: { email: "hoge@example.com" },
+  });
+  console.log(result);
 }
 
 main();

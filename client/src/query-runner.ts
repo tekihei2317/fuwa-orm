@@ -11,13 +11,14 @@ type BatchPayload = {
 
 type SomeModel = Record<string, unknown>;
 
-// Engineが生成したクエリを実行する
+/**
+ * Engineが生成したクエリを実行する
+ */
 export type QueryRunner = {
-  // 戻り値はどこまで実行前に保証できるか分からないので、一旦unknownにします
-  create(args: QueryRunnerInput): SomeModel;
-  createMany(args: QueryRunnerInput): BatchPayload;
-  update: (args: QueryRunnerInput) => SomeModel;
-  // updateMany: (args: unknown) => unknown;
+  create(input: QueryRunnerInput): SomeModel;
+  createMany(input: QueryRunnerInput): BatchPayload;
+  update: (input: QueryRunnerInput) => SomeModel;
+  updateMany: (input: QueryRunnerInput) => BatchPayload;
   // delete: (args: unknown) => unknown;
   // deleteMany: (args: unknown) => unknown;
   // findUnique: (args: unknown) => unknown;
@@ -35,7 +36,7 @@ function isSomeModel(model: unknown): model is SomeModel {
 
 export function createBetterSQLite3QueryRunner(driver: Database): QueryRunner {
   const queryRunner: QueryRunner = {
-    create: (input) => {
+    create(input) {
       const result = driver.prepare(input.statement).get(input.parameters);
       if (isSomeModel(result)) {
         return result;
@@ -43,18 +44,21 @@ export function createBetterSQLite3QueryRunner(driver: Database): QueryRunner {
         throw new ModelNotFoundError(`No result were returned for query "${input.statement}."`);
       }
     },
-    createMany: (input) => {
+    createMany(input) {
       const result = driver.prepare(input.statement).run(input.parameters);
       return { count: result.changes };
     },
-    update: (input) => {
-      console.log(input);
+    update(input) {
       const result = driver.prepare(input.statement).get(input.parameters);
       if (isSomeModel(result)) {
         return result;
       } else {
         throw new ModelNotFoundError(`No result were returned for query "${input.statement}."`);
       }
+    },
+    updateMany(input) {
+      const result = driver.prepare(input.statement).run(input.parameters);
+      return { count: result.changes };
     },
   };
 

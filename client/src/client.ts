@@ -27,11 +27,14 @@ type GeneratedQuery = {
 };
 
 type ModelCreateInput = Record<string, number | string | null>;
+type ModelUpdateInput = Record<string, number | string | null>;
+// 条件が存在すること（空のレコードではないこと）を型で保証したい
 type WhereCondition = Record<string, number | string | null>;
 
 type CreateActionArgs = { data: ModelCreateInput };
 type CreateManyActionArgs = { data: ModelCreateInput[] };
-type UpdateActionArgs = { data: ModelCreateInput; where: WhereCondition };
+type UpdateActionArgs = { data: ModelUpdateInput; where: WhereCondition };
+type UpdateManyActionArgs = { data: ModelUpdateInput; where: WhereCondition | undefined };
 
 function isArray(data: unknown): data is unknown[] {
   return Array.isArray(data);
@@ -105,6 +108,16 @@ function validateUpdateActionArgs(args: unknown): UpdateActionArgs {
   return { data, where };
 }
 
+function validateUpdateManyActionArgs(args: unknown): UpdateManyActionArgs {
+  if (typeof args !== "object" || args === null) throw new Error("Update action args must be an object.");
+  if (!("data" in args)) throw new Error("'data' is required for update action args.");
+
+  const data = validateModelUpdateInput(args.data);
+  const where = "where" in args ? validateWhereCondition(args.where) : undefined;
+
+  return { data, where };
+}
+
 function createInsertStatement(model: string, args: CreateActionArgs): string {
   const columns = Object.keys(args.data).map((column) => `"${column}"`);
   const values = [...new Array(columns.length)].fill("?");
@@ -119,7 +132,7 @@ function createInsertManyStatement(model: string, args: CreateManyActionArgs): s
   const value = [...new Array(columns.length)].fill("?").join(", ");
   const values = [...new Array(args.data.length)].fill(`(${value})`).join(", ");
 
-  return `INSERT INTO ${model} (${columns.join(", ")}) VALUES ${values} RETURNING *`;
+  return `INSERT INTO ${model} (${columns.join(", ")}) VALUES ${values}`;
 }
 
 function createUpdateStatement(model: string, args: UpdateActionArgs): string {
@@ -127,6 +140,14 @@ function createUpdateStatement(model: string, args: UpdateActionArgs): string {
   const filters = Object.keys(args.where).map((column) => `"${column}" = ?`);
 
   return `UPDATE ${model} SET ${assignments.join(",")} WHERE ${filters.join(" AND ")} RETURNING *`;
+}
+
+function createUpdateManyStatement(model: string, args: UpdateManyActionArgs): string {
+  const assignments = Object.keys(args.data).map((column) => `"${column}" = ?`);
+  const filters = args.where === undefined ? undefined : Object.keys(args.where).map((column) => `"${column}" = ?`);
+  const whereClause = filters === undefined ? undefined : `WHERE ${filters.join(" AND ")}`;
+
+  return `UPDATE ${model} SET ${assignments.join(",")}` + (whereClause === undefined ? "" : ` ${whereClause}`);
 }
 
 /**
@@ -159,6 +180,17 @@ function generateQuery({ action, model, args }: GenerateQueryInput): GeneratedQu
       statement: createUpdateStatement(model, validatedArgs),
       parameters: [...Object.values(validatedArgs.data), ...Object.values(validatedArgs.where)],
     };
+  } else if (action === "updateMany") {
+    const validatedArgs = validateUpdateManyActionArgs(args);
+
+    return {
+      action,
+      statement: createUpdateManyStatement(model, validatedArgs),
+      parameters: [
+        ...Object.values(validatedArgs.data),
+        ...(validatedArgs.where ? Object.values(validatedArgs.where) : []),
+      ],
+    };
   } else {
     throw new Error(`Action '${action}' is unsupported for query engine now.`);
   }
@@ -178,7 +210,6 @@ function createModelAction({
   model: string;
   action: ModelAction;
 }): AnyAction {
-  // Actionが正しい型を返すことを確認できるようにしたい。現状だとcreateで戻り値を返さなくてもエラーにならない。
   return async (args) => {
     const generatedQuery = generateQuery({ model, action, args });
 
@@ -188,6 +219,8 @@ function createModelAction({
       return queryRunner.createMany(generatedQuery);
     } else if (generatedQuery.action === "update") {
       return queryRunner.update(generatedQuery);
+    } else if (generatedQuery.action === "updateMany") {
+      return queryRunner.updateMany(generatedQuery);
     } else {
       throw new Error(`Action '${generatedQuery.action}' is unsupported for model action now.`);
     }
