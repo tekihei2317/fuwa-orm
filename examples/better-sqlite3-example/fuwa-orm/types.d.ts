@@ -154,4 +154,4 @@ export type PostGateway = {
 export type ModelGateways = {
   user: UserGateway;
   post: PostGateway;
-}
+};

@@ -31,6 +31,7 @@ __metadata:
   resolution: "@fuwa-orm/client@workspace:client"
   dependencies:
     "@types/better-sqlite3": ^7.6.4
+    typescript: ^5.0.4
   peerDependencies:
     better-sqlite3: ^8.4.0
   peerDependenciesMeta:

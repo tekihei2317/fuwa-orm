@@ -175,7 +175,7 @@ function uncapitalize(str: string): string {
 function createModelGateways(tables: TableDefinition[]): string {
   return `export type ModelGateways = {
 ${tables.map((table) => indent2(`${uncapitalize(table.name)}: ${table.name}Gateway;`)).join("\n")}
-}`;
+};`;
 }
 
 function createGatewaysSection(tableDefs: TableDefinition[]): string {
