@@ -34,7 +34,7 @@ function createModelAction({
       case "deleteMany":
         return queryRunner.deleteMany(generatedQuery);
       default:
-        throw new Error(`Action '${generatedQuery.action}' is unsupported for model action now.`);
+        throw new Error(`Action '${generatedQuery.action}' is unsupported now.`);
     }
   };
 }

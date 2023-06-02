@@ -60,7 +60,6 @@ export function createBetterSQLite3QueryRunner(driver: Database): QueryRunner {
       return { count: result.changes };
     },
     delete(input) {
-      console.log(input);
       const result = driver.prepare(input.statement).get(input.parameters);
       if (!isSomeModel(result)) {
         throw new ModelNotFoundError(`No result were returned for query "${input.statement}."`);
@@ -68,7 +67,6 @@ export function createBetterSQLite3QueryRunner(driver: Database): QueryRunner {
       return result;
     },
     deleteMany(input) {
-      console.log(input);
       const result = driver.prepare(input.statement).run(input.parameters);
       return { count: result.changes };
     },
