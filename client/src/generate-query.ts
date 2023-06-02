@@ -26,6 +26,8 @@ type CreateActionArgs = { data: ModelCreateInput };
 type CreateManyActionArgs = { data: ModelCreateInput[] };
 type UpdateActionArgs = { data: ModelUpdateInput; where: WhereCondition };
 type UpdateManyActionArgs = { data: ModelUpdateInput; where: WhereCondition | undefined };
+type DeleteActionArgs = { where: WhereCondition };
+type DeleteManyActionArgs = { where: WhereCondition | undefined };
 
 function isArray(data: unknown): data is unknown[] {
   return Array.isArray(data);
@@ -90,8 +92,8 @@ function validateCreateManyActionArgs(args: unknown): CreateManyActionArgs {
 
 function validateUpdateActionArgs(args: unknown): UpdateActionArgs {
   if (typeof args !== "object" || args === null) throw new Error("Update action args must be an object.");
-  if (!("data" in args)) throw new Error("'data' is required for update action args.");
-  if (!("where" in args)) throw new Error("'where' is required for update action args.");
+  if (!("data" in args)) throw new Error("'data' is required in update action args.");
+  if (!("where" in args)) throw new Error("'where' is required in update action args.");
 
   const data = validateModelUpdateInput(args.data);
   const where = validateWhereCondition(args.where);
@@ -101,12 +103,26 @@ function validateUpdateActionArgs(args: unknown): UpdateActionArgs {
 
 function validateUpdateManyActionArgs(args: unknown): UpdateManyActionArgs {
   if (typeof args !== "object" || args === null) throw new Error("Update action args must be an object.");
-  if (!("data" in args)) throw new Error("'data' is required for update action args.");
+  if (!("data" in args)) throw new Error("'data' is required in update action args.");
 
   const data = validateModelUpdateInput(args.data);
   const where = "where" in args ? validateWhereCondition(args.where) : undefined;
 
   return { data, where };
+}
+
+function validateDeleteActionArgs(args: unknown): DeleteActionArgs {
+  if (typeof args !== "object" || args === null) throw new Error("Delete action args must be an object.");
+  if (!("where" in args)) throw new Error("'where' is required in delete action args.");
+
+  return { where: validateWhereCondition(args.where) };
+}
+
+function validateDeleteManyActionArgs(args: unknown): DeleteManyActionArgs {
+  if (typeof args !== "object" || args === null) throw new Error("Delete action args must be an object.");
+  const where = "where" in args ? validateWhereCondition(args.where) : undefined;
+
+  return { where };
 }
 
 function createInsertQuery(model: string, args: CreateActionArgs): GeneratedQuery {
@@ -150,6 +166,23 @@ function createUpdateManyQuery(model: string, args: UpdateManyActionArgs): Gener
   return { statement, parameters };
 }
 
+function createDeleteQuery(model: string, args: DeleteActionArgs): GeneratedQuery {
+  const filters = Object.keys(args.where).map((column) => `"${column}" = ?`);
+  const parameters = Object.values(args.where);
+  const statement = `DELETE FROM ${model} WHERE ${filters.join(" AND ")} RETURNING *`;
+
+  return { statement, parameters };
+}
+
+function createDeleteManyQuery(model: string, args: DeleteManyActionArgs): GeneratedQuery {
+  const filters = args.where === undefined ? undefined : Object.keys(args.where).map((column) => `"${column}" = ?`);
+  const parameters = args.where === undefined ? [] : Object.values(args.where);
+  const whereClause = filters === undefined ? undefined : ` WHERE ${filters.join(" AND ")}`;
+  const statement = `DELETE FROM ${model}` + (whereClause === undefined ? "" : `${whereClause}`);
+
+  return { parameters, statement };
+}
+
 /**
  * Generate query to execute from user's arguments.
  */
@@ -163,6 +196,10 @@ export function generateQuery({ action, model, args }: GenerateQueryInput): Quer
       return { action, ...createUpdateQuery(model, validateUpdateActionArgs(args)) };
     case "updateMany":
       return { action, ...createUpdateManyQuery(model, validateUpdateManyActionArgs(args)) };
+    case "delete":
+      return { action, ...createDeleteQuery(model, validateDeleteActionArgs(args)) };
+    case "deleteMany":
+      return { action, ...createDeleteManyQuery(model, validateDeleteManyActionArgs(args)) };
     default:
       throw new Error(`Action '${action}' is unsupported for query engine now.`);
   }

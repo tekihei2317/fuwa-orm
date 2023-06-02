@@ -19,13 +19,13 @@ export type QueryRunner = {
   createMany(input: QueryRunnerInput): BatchPayload;
   update: (input: QueryRunnerInput) => SomeModel;
   updateMany: (input: QueryRunnerInput) => BatchPayload;
-  // delete: (args: unknown) => unknown;
-  // deleteMany: (args: unknown) => unknown;
-  // findUnique: (args: unknown) => unknown;
-  // findUniqueOrThrow: (args: unknown) => unknown;
-  // findFirst: (args: unknown) => unknown;
-  // findFirstOrThrow: (args: unknown) => unknown;
-  // findMany: (args: unknown) => unknown;
+  delete: (input: QueryRunnerInput) => SomeModel;
+  deleteMany: (input: QueryRunnerInput) => BatchPayload;
+  // findUnique: (input: unknown) => unknown;
+  // findUniqueOrThrow: (input: unknown) => unknown;
+  // findFirst: (input: unknown) => unknown;
+  // findFirstOrThrow: (input: unknown) => unknown;
+  // findMany: (input: unknown) => unknown;
 };
 
 export class ModelNotFoundError extends Error {}
@@ -50,13 +50,25 @@ export function createBetterSQLite3QueryRunner(driver: Database): QueryRunner {
     },
     update(input) {
       const result = driver.prepare(input.statement).get(input.parameters);
-      if (isSomeModel(result)) {
-        return result;
-      } else {
+      if (!isSomeModel(result)) {
         throw new ModelNotFoundError(`No result were returned for query "${input.statement}."`);
       }
+      return result;
     },
     updateMany(input) {
+      const result = driver.prepare(input.statement).run(input.parameters);
+      return { count: result.changes };
+    },
+    delete(input) {
+      console.log(input);
+      const result = driver.prepare(input.statement).get(input.parameters);
+      if (!isSomeModel(result)) {
+        throw new ModelNotFoundError(`No result were returned for query "${input.statement}."`);
+      }
+      return result;
+    },
+    deleteMany(input) {
+      console.log(input);
       const result = driver.prepare(input.statement).run(input.parameters);
       return { count: result.changes };
     },

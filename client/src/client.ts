@@ -20,16 +20,21 @@ function createModelAction({
   return async (args) => {
     const generatedQuery = generateQuery({ model, action, args });
 
-    if (generatedQuery.action === "create") {
-      return queryRunner.create(generatedQuery);
-    } else if (generatedQuery.action === "createMany") {
-      return queryRunner.createMany(generatedQuery);
-    } else if (generatedQuery.action === "update") {
-      return queryRunner.update(generatedQuery);
-    } else if (generatedQuery.action === "updateMany") {
-      return queryRunner.updateMany(generatedQuery);
-    } else {
-      throw new Error(`Action '${generatedQuery.action}' is unsupported for model action now.`);
+    switch (generatedQuery.action) {
+      case "create":
+        return queryRunner.create(generatedQuery);
+      case "createMany":
+        return queryRunner.createMany(generatedQuery);
+      case "update":
+        return queryRunner.update(generatedQuery);
+      case "updateMany":
+        return queryRunner.updateMany(generatedQuery);
+      case "delete":
+        return queryRunner.delete(generatedQuery);
+      case "deleteMany":
+        return queryRunner.deleteMany(generatedQuery);
+      default:
+        throw new Error(`Action '${generatedQuery.action}' is unsupported for model action now.`);
     }
   };
 }

@@ -20,8 +20,8 @@ async function main() {
       email: "hoge@example.com",
     },
   });
-
   console.log(user, user.id, user.email);
+
   const users = await client.user.createMany({
     data: [{ email: "hoge@example.com" }, { email: "fuga@example.com" }],
   });
@@ -33,11 +33,21 @@ async function main() {
   });
   console.log(updatedUser);
 
-  const result = await client.user.updateMany({
-    where: { email: "hoge@example.com" },
+  const updateResult = await client.user.updateMany({
+    where: { email: "fuga@example.com" },
     data: { email: "hoge@example.com" },
   });
-  console.log(result);
+  console.log(updateResult);
+
+  const deletedUser = await client.user.delete({
+    where: { id: user.id },
+  });
+  console.log(deletedUser);
+
+  const deleteResult = await client.user.deleteMany({
+    where: { email: "hoge@example.com" },
+  });
+  console.log(deleteResult);
 }
 
 main();
