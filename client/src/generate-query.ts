@@ -7,6 +7,11 @@ type GenerateQueryInput = {
 };
 
 type GeneratedQuery = {
+  statement: string;
+  parameters: unknown[];
+};
+
+type QueryWithAction = {
   action: ModelAction;
   statement: string;
   parameters: unknown[];
@@ -104,80 +109,61 @@ function validateUpdateManyActionArgs(args: unknown): UpdateManyActionArgs {
   return { data, where };
 }
 
-function createInsertStatement(model: string, args: CreateActionArgs): string {
+function createInsertQuery(model: string, args: CreateActionArgs): GeneratedQuery {
   const columns = Object.keys(args.data).map((column) => `"${column}"`);
   const values = [...new Array(columns.length)].fill("?");
-  return `INSERT INTO ${model} (${columns.join(", ")}) VALUES (${values.join(", ")}) RETURNING *`;
+  const statement = `INSERT INTO ${model} (${columns.join(", ")}) VALUES (${values.join(", ")}) RETURNING *`;
+  const parameters = Object.values(args.data);
+  return { statement, parameters };
 }
 
-function createInsertManyStatement(model: string, args: CreateManyActionArgs): string {
+function createInsertManyQuery(model: string, args: CreateManyActionArgs): GeneratedQuery {
   const createInput = args.data[0];
   if (createInput === undefined) throw new Error("TODO: Create many input is an empty array.");
 
   const columns = Object.keys(createInput).map((column) => `"${column}"`);
   const value = [...new Array(columns.length)].fill("?").join(", ");
   const values = [...new Array(args.data.length)].fill(`(${value})`).join(", ");
+  const parameters = args.data.flatMap((createInput) => Object.values(createInput));
+  const statement = `INSERT INTO ${model} (${columns.join(", ")}) VALUES ${values}`;
 
-  return `INSERT INTO ${model} (${columns.join(", ")}) VALUES ${values}`;
+  return { statement, parameters };
 }
 
-function createUpdateStatement(model: string, args: UpdateActionArgs): string {
+function createUpdateQuery(model: string, args: UpdateActionArgs): GeneratedQuery {
   const assignments = Object.keys(args.data).map((column) => `"${column}" = ?`);
   const filters = Object.keys(args.where).map((column) => `"${column}" = ?`);
+  const statement = `UPDATE ${model} SET ${assignments.join(",")} WHERE ${filters.join(" AND ")} RETURNING *`;
+  const parameters = [...Object.values(args.data), ...Object.values(args.where)];
 
-  return `UPDATE ${model} SET ${assignments.join(",")} WHERE ${filters.join(" AND ")} RETURNING *`;
+  return { statement, parameters };
 }
 
-function createUpdateManyStatement(model: string, args: UpdateManyActionArgs): string {
+function createUpdateManyQuery(model: string, args: UpdateManyActionArgs): GeneratedQuery {
   const assignments = Object.keys(args.data).map((column) => `"${column}" = ?`);
   const filters = args.where === undefined ? undefined : Object.keys(args.where).map((column) => `"${column}" = ?`);
   const whereClause = filters === undefined ? undefined : `WHERE ${filters.join(" AND ")}`;
+  const parameters = [...Object.values(args.data), ...(args.where ? Object.values(args.where) : [])];
+  const statement =
+    `UPDATE ${model} SET ${assignments.join(",")}` + (whereClause === undefined ? "" : ` ${whereClause}`);
 
-  return `UPDATE ${model} SET ${assignments.join(",")}` + (whereClause === undefined ? "" : ` ${whereClause}`);
+  return { statement, parameters };
 }
 
 /**
  * Generate query to execute from user's arguments.
  */
-export function generateQuery({ action, model, args }: GenerateQueryInput): GeneratedQuery {
-  if (action === "create") {
-    const validatedArgs = validateCreateActionArgs(args);
-
-    // It is better to create a statement and parameters in one function
-    return {
-      action,
-      statement: createInsertStatement(model, validatedArgs),
-      parameters: Object.values(validatedArgs.data),
-    };
-  } else if (action === "createMany") {
-    const validatedArgs = validateCreateManyActionArgs(args);
-    const parameters = validatedArgs.data.flatMap((createInput) => Object.values(createInput));
-
-    return {
-      action,
-      statement: createInsertManyStatement(model, validatedArgs),
-      parameters,
-    };
-  } else if (action === "update") {
-    const validatedArgs = validateUpdateActionArgs(args);
-
-    return {
-      action,
-      statement: createUpdateStatement(model, validatedArgs),
-      parameters: [...Object.values(validatedArgs.data), ...Object.values(validatedArgs.where)],
-    };
-  } else if (action === "updateMany") {
-    const validatedArgs = validateUpdateManyActionArgs(args);
-
-    return {
-      action,
-      statement: createUpdateManyStatement(model, validatedArgs),
-      parameters: [
-        ...Object.values(validatedArgs.data),
-        ...(validatedArgs.where ? Object.values(validatedArgs.where) : []),
-      ],
-    };
-  } else {
-    throw new Error(`Action '${action}' is unsupported for query engine now.`);
+export function generateQuery({ action, model, args }: GenerateQueryInput): QueryWithAction {
+  switch (action) {
+    case "create":
+      return { action, ...createInsertQuery(model, validateCreateActionArgs(args)) };
+    case "createMany":
+      return { action, ...createInsertManyQuery(model, validateCreateManyActionArgs(args)) };
+    case "update":
+      return { action, ...createUpdateQuery(model, validateUpdateActionArgs(args)) };
+    case "updateMany":
+      return { action, ...createUpdateManyQuery(model, validateUpdateManyActionArgs(args)) };
+    default:
+      throw new Error(`Action '${action}' is unsupported for query engine now.`);
   }
 }
