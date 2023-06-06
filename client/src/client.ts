@@ -43,7 +43,7 @@ type ModelGateway = {
   [action in ModelAction]: AnyAction;
 };
 
-function createModelGateways<ModelGateways>(queryRunner: QueryRunner): ModelGateways {
+export function createModelGateways<ModelGateways>(queryRunner: QueryRunner): ModelGateways {
   const modelGateways = new Proxy(
     {},
     {
@@ -70,7 +70,7 @@ function createModelGateways<ModelGateways>(queryRunner: QueryRunner): ModelGate
   return modelGateways;
 }
 
-export function createFuwaClient<ModelGateways>(driver: Database): ModelGateways {
+function createFuwaClient<ModelGateways>(driver: Database): ModelGateways {
   const queryRunner = createBetterSQLite3QueryRunner(driver);
 
   return createModelGateways(queryRunner);
