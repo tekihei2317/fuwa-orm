@@ -1,4 +1,5 @@
 import { D1Database } from "@cloudflare/workers-types";
+import { DatabaseApi } from "@sqlite.org/sqlite-wasm";
 import { Database } from "better-sqlite3";
 
 type QueryRunnerInput = {
@@ -134,6 +135,31 @@ export function createD1QueryRunner(driver: D1Database): QueryRunner {
         .bind(...input.parameters)
         .run();
       return { count: meta.changes };
+    },
+  };
+
+  return queryRunner;
+}
+
+export function createSQLiteWasmQueryRunner(driver: DatabaseApi): QueryRunner {
+  const queryRunner: QueryRunner = {
+    async create(input) {
+      return {};
+    },
+    async createMany(input) {
+      return { count: 0 };
+    },
+    async update(input) {
+      return {};
+    },
+    async updateMany(input) {
+      return { count: 0 };
+    },
+    async delete(input) {
+      return {};
+    },
+    async deleteMany(input) {
+      return { count: 0 };
     },
   };
 

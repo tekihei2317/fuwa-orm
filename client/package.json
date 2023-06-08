@@ -5,7 +5,8 @@
   "types": "./dist/index.d.ts",
   "exports": {
     ".": "./dist/index.js",
-    "./d1": "./dist/adapters/d1.js"
+    "./d1": "./dist/adapters/d1.js",
+    "./better-sqlite3": "./dist/adapters/better-sqlite3.js"
   },
   "files": [
     "package.json",
@@ -17,9 +18,13 @@
     "build:watch": "tsc -p tsconfig.build.json --watch"
   },
   "peerDependencies": {
+    "@sqlite.org/sqlite-wasm": "*",
     "better-sqlite3": "^8.4.0"
   },
   "peerDependenciesMeta": {
+    "@sqlite.org/sqlite-wasm": {
+      "optional": true
+    },
     "better-sqlite3": {
       "optional": true
     }

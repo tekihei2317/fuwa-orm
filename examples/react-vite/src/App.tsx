@@ -1,35 +1,86 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useEffect, useRef, useState } from "react";
+import DatabaseWorker from "./database-worker?worker";
+
+type Task = {
+  id: number;
+  name: string;
+  done: boolean;
+};
+
+type UseTaskReturn = {
+  tasks: Task[];
+  addTask: ({ name }: { name: string }) => void;
+  toggleTaskStatus: (targetIndex: number) => void;
+  deleteTask: (targetIndex: number) => void;
+};
+
+function useTask(): UseTaskReturn {
+  const dbWorker = useRef<Worker>();
+  const [tasks, setTasks] = useState<Task[]>([]);
+
+  useEffect(() => {
+    dbWorker.current = new DatabaseWorker();
+    dbWorker.current.onmessage = (e) => {
+      setTasks(e.data);
+    };
+  }, []);
+
+  const addTask = ({ name }: { name: string }) => {
+    if (!dbWorker.current) return;
+    dbWorker.current.postMessage({ action: "create", name });
+  };
+
+  const toggleTaskStatus = (id: number) => {
+    if (!dbWorker.current) return;
+    dbWorker.current.postMessage({ action: "toggle", id });
+  };
+
+  const deleteTask = (id: number) => {
+    if (!dbWorker.current) return;
+    dbWorker.current.postMessage({ action: "delete", id });
+  };
+
+  return { tasks, addTask, toggleTaskStatus, deleteTask };
+}
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [taskForm, setTaskForm] = useState("");
+  const { tasks, addTask, toggleTaskStatus, deleteTask } = useTask();
+  const handleSubmit = ({ name }: { name: string }) => {
+    addTask({ name });
+    setTaskForm("");
+  };
 
   return (
     <>
       <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+        <h1>Todo App</h1>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (taskForm === "") return;
+          handleSubmit({ name: taskForm });
+        }}
+      >
+        <input type="text" value={taskForm} onChange={(e) => setTaskForm(e.currentTarget.value)} />
+        <button type="submit" style={{ marginLeft: "8px" }}>
+          追加する
         </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
+      </form>
+      <div style={{ maxWidth: "480px", marginTop: "16px" }}>
+        {tasks.map((task) => (
+          <div key={task.id} style={{ display: "flex", justifyContent: "space-between" }}>
+            <label>
+              <input type="checkbox" checked={task.done} onChange={() => toggleTaskStatus(task.id)} />
+              <span>{task.name}</span>
+            </label>
+            <button onClick={() => deleteTask(task.id)}>削除する</button>
+          </div>
+        ))}
       </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
     </>
-  )
+  );
 }
 
-export default App
+export default App;
