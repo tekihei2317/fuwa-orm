@@ -1,5 +1,5 @@
 import Database from "better-sqlite3";
-import { FuwaClient } from "@fuwa-orm/client";
+import { FuwaClient } from "@fuwa-orm/client/better-sqlite3";
 import { ModelGateways } from "./fuwa-orm/types.js";
 
 const db = new Database("sample.db");
