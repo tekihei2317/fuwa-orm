@@ -4,7 +4,10 @@
   "version": "0.0.2",
   "types": "./dist/index.d.ts",
   "exports": {
-    ".": "./dist/index.js"
+    ".": "./dist/index.js",
+    "./d1": "./dist/adapters/d1.js",
+    "./better-sqlite3": "./dist/adapters/better-sqlite3.js",
+    "./sqlite-wasm": "./dist/adapters/sqlite-wasm.js"
   },
   "files": [
     "package.json",
@@ -16,14 +19,19 @@
     "build:watch": "tsc -p tsconfig.build.json --watch"
   },
   "peerDependencies": {
+    "@sqlite.org/sqlite-wasm": "*",
     "better-sqlite3": "^8.4.0"
   },
   "peerDependenciesMeta": {
+    "@sqlite.org/sqlite-wasm": {
+      "optional": true
+    },
     "better-sqlite3": {
       "optional": true
     }
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.20230518.0",
     "@types/better-sqlite3": "^7.6.4",
     "typescript": "^5.0.4"
   }

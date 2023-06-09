@@ -33,13 +33,13 @@ function createColumnDefinitionFromNode(ctx: Column_defContext): ColumnDefinitio
   };
 }
 
-function createColumnConstraintsFromNode(ctx: Column_defContext): ConstraintDefinition[] {
+function createColumnConstraintsFromNode(ctx: Column_defContext, columnIndex: number): ConstraintDefinition[] {
   const constraints: ConstraintDefinition[] = [];
-  ctx.column_constraint_list().forEach((constraintCtx, index) => {
+  ctx.column_constraint_list().forEach((constraintCtx) => {
     if (constraintCtx.getText().toUpperCase().startsWith("PRIMARYKEY")) {
-      constraints.push({ type: "PRIMARY", columns: [index] });
+      constraints.push({ type: "PRIMARY", columns: [columnIndex] });
     } else if (constraintCtx.getText().toUpperCase().startsWith("UNIQUE")) {
-      constraints.push({ type: "UNIQUE", columns: [index] });
+      constraints.push({ type: "UNIQUE", columns: [columnIndex] });
     }
   });
 
@@ -111,7 +111,7 @@ function createTableDefinitionFromNode(ctx: Create_table_stmtContext): TableDefi
   const columns: ColumnDefinition[] = ctx.column_def_list().map((ctx) => createColumnDefinitionFromNode(ctx));
   const columnConstraints: ConstraintDefinition[] = ctx
     .column_def_list()
-    .flatMap((ctx) => createColumnConstraintsFromNode(ctx));
+    .flatMap((ctx, columnIndex) => createColumnConstraintsFromNode(ctx, columnIndex));
 
   const columnNameToIdxMap = new Map(columns.map((column, index) => [column.name, index]));
   const tableConstraints: ConstraintDefinition[] = createTableConstraintsFromNode(
