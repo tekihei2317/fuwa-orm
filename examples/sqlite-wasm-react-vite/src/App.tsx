@@ -4,7 +4,7 @@ import DatabaseWorker from "./database-worker?worker";
 type Task = {
   id: number;
   name: string;
-  done: boolean;
+  done: number;
 };
 
 type UseTaskReturn = {
@@ -32,11 +32,17 @@ function useTask(): UseTaskReturn {
 
   const toggleTaskStatus = (id: number) => {
     if (!dbWorker.current) return;
-    dbWorker.current.postMessage({ action: "toggle", id });
+    const task = tasks.find((task) => task.id === id);
+    if (task === undefined) return;
+
+    const newStatus = task.done === 1 ? 0 : 1;
+    setTasks(tasks.map((task) => (task.id === id ? { ...task, done: newStatus } : task)));
+    dbWorker.current.postMessage({ action: "toggle", id, status: newStatus });
   };
 
   const deleteTask = (id: number) => {
     if (!dbWorker.current) return;
+    setTasks(tasks.filter((task) => task.id !== id));
     dbWorker.current.postMessage({ action: "delete", id });
   };
 
@@ -72,7 +78,7 @@ function App() {
         {tasks.map((task) => (
           <div key={task.id} style={{ display: "flex", justifyContent: "space-between" }}>
             <label>
-              <input type="checkbox" checked={task.done} onChange={() => toggleTaskStatus(task.id)} />
+              <input type="checkbox" checked={Boolean(task.done)} onChange={() => toggleTaskStatus(task.id)} />
               <span>{task.name}</span>
             </label>
             <button onClick={() => deleteTask(task.id)}>削除する</button>

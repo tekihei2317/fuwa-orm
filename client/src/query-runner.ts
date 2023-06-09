@@ -144,22 +144,61 @@ export function createD1QueryRunner(driver: D1Database): QueryRunner {
 export function createSQLiteWasmQueryRunner(driver: DatabaseApi): QueryRunner {
   const queryRunner: QueryRunner = {
     async create(input) {
-      return {};
+      const result = driver.exec({
+        sql: input.statement,
+        bind: input.parameters,
+        rowMode: "object",
+        returnValue: "resultRows",
+      });
+      if (!isSomeModel(result)) {
+        throw new ModelNotFoundError(`No result were returned for query "${input.statement}."`);
+      }
+      return result;
     },
     async createMany(input) {
-      return { count: 0 };
+      driver.exec({
+        sql: input.statement,
+        bind: input.parameters,
+      });
+      return { count: driver.changes() };
     },
     async update(input) {
-      return {};
+      const result = driver.exec({
+        sql: input.statement,
+        bind: input.parameters,
+        rowMode: "object",
+        returnValue: "resultRows",
+      });
+      if (!isSomeModel(result)) {
+        throw new ModelNotFoundError(`No result were returned for query "${input.statement}."`);
+      }
+      return result;
     },
     async updateMany(input) {
-      return { count: 0 };
+      driver.exec({
+        sql: input.statement,
+        bind: input.parameters,
+      });
+      return { count: driver.changes() };
     },
     async delete(input) {
-      return {};
+      const result = driver.exec({
+        sql: input.statement,
+        bind: input.parameters,
+        rowMode: "object",
+        returnValue: "resultRows",
+      });
+      if (!isSomeModel(result)) {
+        throw new ModelNotFoundError(`No result were returned for query "${input.statement}."`);
+      }
+      return result;
     },
     async deleteMany(input) {
-      return { count: 0 };
+      driver.exec({
+        sql: input.statement,
+        bind: input.parameters,
+      });
+      return { count: driver.changes() };
     },
   };
 

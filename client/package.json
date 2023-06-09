@@ -6,7 +6,8 @@
   "exports": {
     ".": "./dist/index.js",
     "./d1": "./dist/adapters/d1.js",
-    "./better-sqlite3": "./dist/adapters/better-sqlite3.js"
+    "./better-sqlite3": "./dist/adapters/better-sqlite3.js",
+    "./sqlite-wasm": "./dist/adapters/sqlite-wasm.js"
   },
   "files": [
     "package.json",

@@ -1,4 +1,6 @@
 import sqlite3InitModule, { type DatabaseApi } from "@sqlite.org/sqlite-wasm";
+import { FuwaClient } from "@fuwa-orm/client/sqlite-wasm";
+import { ModelGateways } from "./database/fura-orm";
 
 let db: DatabaseApi;
 
@@ -13,6 +15,8 @@ if (sqlite3.opfs) {
 } else {
   throw new Error("opfs is not enabled");
 }
+
+const dbClient = FuwaClient.create<ModelGateways>(db);
 
 db.exec(
   "create table if not exists Task (id INTEGER NOT NULL PRIMARY KEY, name TEXT NOT NULL, done INTEGER NOT NULL);"
@@ -29,24 +33,22 @@ function reloadTasks() {
   );
 }
 
-function createTask(name: string): void {
-  db.exec({
-    sql: "insert into Task (name, done) values (?, ?)",
-    bind: [name, 0],
+async function createTask(name: string): Promise<void> {
+  await dbClient.task.create({
+    data: { name, done: 0 },
   });
 }
 
-function toggleTaskStatus(id: number): void {
-  db.exec({
-    sql: "update Task set done = case when done = 1 then 0 else 1 end where id = ?",
-    bind: [id],
+async function toggleTaskStatus(id: number, status: number): Promise<void> {
+  await dbClient.task.update({
+    data: { done: status },
+    where: { id },
   });
 }
 
-function deleteTask(id: number): void {
-  db.exec({
-    sql: "delete from Task where id = ?",
-    bind: [id],
+async function deleteTask(id: number): Promise<void> {
+  await dbClient.task.delete({
+    where: { id },
   });
 }
 
@@ -60,12 +62,10 @@ self.addEventListener("message", (e) => {
       reloadTasks();
       break;
     case "toggle":
-      toggleTaskStatus(e.data.id);
-      reloadTasks();
+      toggleTaskStatus(e.data.id, e.data.status);
       break;
     case "delete":
       deleteTask(e.data.id);
-      reloadTasks();
       break;
     default:
       throw new Error(`Unsupported action: ${e.data.action}`);
