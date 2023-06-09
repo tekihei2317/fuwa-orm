@@ -4,3 +4,4 @@
 node_modules
 cli/dist
 client/dist
+test.sqlite3

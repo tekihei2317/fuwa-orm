@@ -11,14 +11,16 @@
   "scripts": {
     "build": "npm run build --workspace=cli --workspace=client",
     "lint:prettier": "prettier --check '**/*.{js,ts,tsx,json}'",
-    "fix:prettier": "prettier --write '**/*.{js,ts,tsx,json}'"
+    "fix:prettier": "prettier --write '**/*.{js,ts,tsx,json}'",
+    "test": "vitest"
   },
   "devDependencies": {
     "@tsconfig/strictest": "^2.0.1",
     "@types/node": "^20.2.5",
     "prettier": "^2.8.8",
     "ts-node": "^10.9.1",
-    "typescript": "^5.0.4"
+    "typescript": "^5.0.4",
+    "vitest": "^0.32.0"
   },
   "packageManager": "yarn@3.5.1"
 }

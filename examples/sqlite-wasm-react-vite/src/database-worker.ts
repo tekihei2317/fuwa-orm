@@ -1,6 +1,6 @@
 import sqlite3InitModule, { type DatabaseApi } from "@sqlite.org/sqlite-wasm";
 import { FuwaClient } from "@fuwa-orm/client/sqlite-wasm";
-import { ModelGateways } from "./database/fura-orm";
+import { ModelGateways } from "./database/fuwa-orm";
 
 let db: DatabaseApi;
 
