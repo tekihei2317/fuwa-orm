@@ -11,7 +11,7 @@ type GeneratedQuery = {
   parameters: unknown[];
 };
 
-type QueryWithAction = {
+export type QueryWithAction = {
   action: ModelAction;
   statement: string;
   parameters: unknown[];

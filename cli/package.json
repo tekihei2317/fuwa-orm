@@ -14,7 +14,8 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "build:watch": "tsc -p tsconfig.build.json --watch",
-    "playground": "node dist/index.js generate playground/schema.sql > playground/types.ts"
+    "playground": "node dist/index.js generate playground/schema.sql > playground/types.ts",
+    "lint:tsc": "tsc --noEmit"
   },
   "dependencies": {
     "antlr4": "^4.13.0",

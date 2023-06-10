@@ -162,7 +162,7 @@ function createGatewayType(tableDef: TableDefinition): string {
   findUnique: <Args extends ${tableDef.name}FindUniqueArgs>(args: Args) => Promise<${tableDef.name} | null>;
   findUniqueOrThrow: <Args extends ${tableDef.name}FindUniqueArgs>(args: Args) => Promise<${tableDef.name}>;
   findFirst: <Args extends ${tableDef.name}FindFirstArgs>(args?: Args) => Promise<${tableDef.name} | null>;
-  finFirstOrThrow: <Args extends ${tableDef.name}FindFirstArgs>(args?: Args) => Promise<${tableDef.name}>;
+  findFirstOrThrow: <Args extends ${tableDef.name}FindFirstArgs>(args?: Args) => Promise<${tableDef.name}>;
   findMany: <Args extends ${tableDef.name}FindManyArgs>(args?: Args) => Promise<${tableDef.name}[]>;
 };`;
 }
