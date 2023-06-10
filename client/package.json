@@ -16,7 +16,8 @@
   ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
-    "build:watch": "tsc -p tsconfig.build.json --watch"
+    "build:watch": "tsc -p tsconfig.build.json --watch",
+    "lint:tsc": "tsc --noEmit"
   },
   "peerDependencies": {
     "@sqlite.org/sqlite-wasm": "*",

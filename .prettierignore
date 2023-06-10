@@ -1,1 +1,5 @@
 node_modules
+dist
+cli/src/parser/SQLiteLexer.ts
+cli/src/parser/SQLiteParser.ts
+cli/src/parser/SQLiteParserListener.ts
